@@ -1,0 +1,15 @@
+[project]
+name = "karpathy-wiki"
+version = "0.1.0"
+description = "Markdown-first Andrej Karpathy wiki with optional Cognee and filesystem-backed session memory workflows."
+requires-python = ">=3.10"
+dependencies = [
+  "cognee>=1.0.0",
+  "python-dotenv>=1.0.0"
+]
+
+[project.optional-dependencies]
+dev = []
+
+[tool.uv]
+package = false

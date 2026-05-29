@@ -1,0 +1,15 @@
+{
+  "query": "What connects Software 2.0, nanoGPT, and llm.c?",
+  "baseline_answer": "They are all related to Karpathy's public neural-network work.",
+  "feedback": "Missing the through-line: making neural network systems more understandable, teachable, and close to the metal.",
+  "success_score": 0.35,
+  "target_pages": [
+    "wiki/concepts/software-2-0.md",
+    "wiki/projects/nanogpt.md",
+    "wiki/projects/llm-c.md"
+  ],
+  "improvement": {
+    "summary": "Add a reusable synthesis note connecting the three pages.",
+    "tags": ["synthesis", "education", "systems"]
+  }
+}
