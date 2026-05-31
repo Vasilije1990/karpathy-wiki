@@ -23,9 +23,9 @@ from wiki_common import (
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Ingest one source into the Karpathy wiki.")
+    parser = argparse.ArgumentParser(description="Ingest one source into the wiki.")
     parser.add_argument("source", help="Local source path or URL")
-    parser.add_argument("--session", default="karpathy-wiki-ingest", help="Cognee session id")
+    parser.add_argument("--session", default=f"{DEFAULT_DATASET}-ingest", help="Cognee session id")
     parser.add_argument("--dataset", default=DEFAULT_DATASET, help="Cognee dataset name")
     parser.add_argument("--title", default=None, help="Override source title")
     parser.add_argument("--source-id", default=None, help="Override source id")
@@ -80,7 +80,7 @@ def main() -> None:
 
     durable_memory = json.dumps(
         {
-            "kind": "karpathy-wiki-source",
+            "kind": f"{args.dataset}-source",
             "source_id": source_id,
             "title": title,
             "url": source_url or "",
@@ -123,7 +123,7 @@ def main() -> None:
 
 def read_source(source: str, title: str | None) -> tuple[str, str | None, str | None]:
     if source.startswith(("http://", "https://")):
-        request = Request(source, headers={"User-Agent": "karpathy-wiki-ingestor/0.1"})
+        request = Request(source, headers={"User-Agent": f"{DEFAULT_DATASET}-ingestor/0.1"})
         with urlopen(request, timeout=15) as response:
             text = response.read().decode("utf-8", errors="replace")
         return text, title or infer_title(text), source

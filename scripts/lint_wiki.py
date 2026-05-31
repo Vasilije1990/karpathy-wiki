@@ -20,7 +20,7 @@ from wiki_common import (
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Lint the Karpathy wiki markdown files.")
+    parser = argparse.ArgumentParser(description="Lint the wiki markdown files.")
     parser.add_argument("--strict-orphans", action="store_true", help="Fail on orphan pages")
     parser.add_argument("--strict-citations", action="store_true", help="Require claim-level source citations on claim-bearing pages")
     parser.add_argument("--semantic", action="store_true", help="Run semantic source-grounding, contradiction, and staleness checks")

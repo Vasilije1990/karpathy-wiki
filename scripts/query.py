@@ -41,9 +41,9 @@ class QueryResult:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Query the Karpathy wiki.")
+    parser = argparse.ArgumentParser(description="Query the wiki.")
     parser.add_argument("question", help="Question to answer")
-    parser.add_argument("--session", default="karpathy-wiki-query", help="Cognee session id")
+    parser.add_argument("--session", default=f"{DEFAULT_DATASET}-query", help="Cognee session id")
     parser.add_argument("--dataset", default=DEFAULT_DATASET, help="Cognee dataset name")
     parser.add_argument("--file-answer", action="store_true", help="File the answer as a wiki source note")
     parser.add_argument("--reviewed", action="store_true", help="File query answers with reviewed status")
@@ -69,15 +69,16 @@ def main() -> None:
 
 def answer_question(
     question: str,
-    session: str = "karpathy-wiki-query",
+    session: str | None = None,
     dataset: str = DEFAULT_DATASET,
     use_cognee: bool = False,
     file_answer_enabled: bool = False,
     reviewed: bool = False,
 ) -> QueryResult:
+    session_id = session or f"{dataset}-query"
     hits = search_markdown(question, limit=6)
     cognee_status, memories = (
-        run_async(cognee_recall(question, dataset, session))
+        run_async(cognee_recall(question, dataset, session_id))
         if use_cognee
         else ("cognee recall skipped: pass --cognee when embedding/provider access is configured", [])
     )
@@ -85,7 +86,7 @@ def answer_question(
     evidence = build_evidence(hits, memories)
     answer = build_answer(question, evidence, cognee_status)
     session_event_status = write_session_event(
-        session,
+        session_id,
         {
             "kind": "query",
             "question": question,
@@ -202,27 +203,6 @@ def synthesize(question: str, evidence: list[EvidenceItem]) -> str:
             "then file source-backed wiki pages before relying on it as durable wiki knowledge."
         )
 
-    hit_titles = {item.title.lower() for item in markdown_items}
-    if {"software 2.0", "nanogpt", "llm.c"}.issubset(hit_titles):
-        recall_clause = ""
-        if memory_items:
-            recall_clause = (
-                " Cognee recall reinforces this by surfacing remembered source context around the same project and concept cluster"
-                + citation_suffix(memory_items)
-                + "."
-            )
-        software_cite = citation_suffix([item for item in markdown_items if item.title.lower() == "software 2.0"])
-        nanogpt_cite = citation_suffix([item for item in markdown_items if item.title.lower() == "nanogpt"])
-        llmc_cite = citation_suffix([item for item in markdown_items if item.title.lower() == "llm.c"])
-        return (
-            "The current wiki connects Software 2.0, nanoGPT, and llm.c through an educational systems thread: "
-            f"Software 2.0 frames trained neural networks as software artifacts{software_cite}. "
-            f"nanoGPT makes GPT-style training small enough to inspect{nanogpt_cite}. "
-            f"llm.c moves the same learning surface closer to low-level implementation{llmc_cite}. "
-            "Synthesis: Karpathy's public work often turns complex neural-network systems into readable artifacts that teach the mechanism."
-            + recall_clause
-        )
-
     top_items = markdown_items[:3]
     titles = ", ".join(item.title for item in top_items)
     sources = sorted({source for item in top_items for source in item.sources})
@@ -251,7 +231,7 @@ def compact_memory(memory: str) -> str:
 def extract_source_ids(memory: str) -> list[str]:
     candidates = set(re.findall(r"source_id:\s*([a-zA-Z0-9_.-]+)", memory))
     candidates.update(re.findall(r'"source_id"\s*:\s*"([a-zA-Z0-9_.-]+)"', memory))
-    candidates.update(re.findall(r"`([a-zA-Z0-9_.-]+(?:readme|essay|course|notes|gist|corpus)[a-zA-Z0-9_.-]*)`", memory))
+    candidates.update(re.findall(r"`([a-zA-Z0-9_.-]+)`", memory))
     return sorted(candidates)
 
 
@@ -263,7 +243,7 @@ def summarize_memory_items(items: list[EvidenceItem]) -> str:
         return "Cognee source IDs " + ", ".join(source_ids[:5])
     words: list[str] = []
     for item in items[:3]:
-        for token in re.findall(r"\b[A-Z][A-Za-z0-9.]+\b|\b(?:nanoGPT|minGPT|llm\.c|CS231n)\b", item.snippet):
+        for token in re.findall(r"\b[A-Z][A-Za-z0-9_.-]+\b", item.snippet):
             if token not in words:
                 words.append(token)
             if len(words) == 5:

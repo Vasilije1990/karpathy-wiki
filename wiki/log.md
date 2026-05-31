@@ -3,9 +3,10 @@ title: Wiki Log
 type: log
 status: seed
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-05-31
 sources:
   - llm-wiki-gist
+  - cognee-resources
 tags:
   - log
   - operations
@@ -45,3 +46,7 @@ Ingested 15 public source records. Failures: 3.
 ## [2026-05-28] query | What connects Software 2.0, nanoGPT, and llm.c?
 
 Filed reviewed answer at `wiki/source-notes/query-what-connects-software-2-0-nanogpt-and-llm-c.md`.
+
+## [2026-05-31] improve | Reusable wiki generation and SEO
+
+Added a self-service wiki generation guide, a fresh experimental starter scaffold, Cognee resource links, SEO metadata, and runtime page metadata.

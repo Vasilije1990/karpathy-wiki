@@ -23,7 +23,7 @@ class WikiRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         if self.path == "/api/health":
-            self.write_json({"ok": True, "service": "karpathy-wiki-api"})
+            self.write_json({"ok": True, "service": f"{DEFAULT_DATASET}-api"})
             return
         self.serve_static()
 
@@ -41,7 +41,7 @@ class WikiRequestHandler(BaseHTTPRequestHandler):
 
             result = answer_question(
                 question=question,
-                session=str(payload.get("session") or "karpathy-wiki-web"),
+                session=str(payload.get("session") or f"{DEFAULT_DATASET}-web"),
                 dataset=str(payload.get("dataset") or DEFAULT_DATASET),
                 use_cognee=bool(payload.get("cognee", True)),
                 file_answer_enabled=bool(payload.get("fileAnswer", True)),
@@ -112,7 +112,7 @@ class WikiRequestHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Serve the Karpathy wiki frontend and live Cognee query API.")
+    parser = argparse.ArgumentParser(description="Serve the wiki frontend and live Cognee query API.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--static-root", default=str(ROOT / "dist"))
@@ -120,7 +120,7 @@ def main() -> None:
 
     WikiRequestHandler.static_root = Path(args.static_root)
     server = ThreadingHTTPServer((args.host, args.port), WikiRequestHandler)
-    print(f"Karpathy wiki API serving http://{args.host}:{args.port}")
+    print(f"Wiki API serving http://{args.host}:{args.port}")
     print(f"static root: {WikiRequestHandler.static_root}")
     server.serve_forever()
 

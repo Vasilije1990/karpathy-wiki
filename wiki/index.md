@@ -3,10 +3,11 @@ title: Andrej Karpathy Wiki Index
 type: overview
 status: seed
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-05-31
 sources:
   - llm-wiki-gist
   - public-karpathy-corpus
+  - cognee-resources
 tags:
   - index
   - karpathy
@@ -14,9 +15,11 @@ aliases:
   - Home
 related:
   - how-to-use.md
+  - generate-your-own-wiki.md
   - people/andrej-karpathy.md
   - timeline.md
   - source-notes/public-corpus-map.md
+  - source-notes/cognee-resources.md
 confidence: medium
 ---
 
@@ -29,10 +32,12 @@ The website has a live `Ask Cognee` tab when `scripts/wiki_server.py` is running
 ## Start Here
 
 - [How To Use This Wiki](how-to-use.md): browsing, search, query, ingest, improve, and lint workflows.
+- [Generate Your Own Wiki](generate-your-own-wiki.md): scaffold a fresh experimental wiki project or reuse the starter content.
 - [Andrej Karpathy](people/andrej-karpathy.md): person page and topic map.
 - [Timeline](timeline.md): public work organized chronologically.
 - [LLM Wiki](concepts/llm-wiki.md): the operating model this project follows.
 - [Source Map](source-notes/public-corpus-map.md): initial public corpus and ingestion policy.
+- [Cognee Resources](source-notes/cognee-resources.md): official Cognee website, docs, and GitHub links.
 - [Log](log.md): append-only record of wiki operations.
 
 ## Concept Hubs

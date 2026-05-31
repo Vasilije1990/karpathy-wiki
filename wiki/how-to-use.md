@@ -3,10 +3,11 @@ title: How To Use This Wiki
 type: overview
 status: seed
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-05-31
 sources:
   - llm-wiki-gist
   - public-karpathy-corpus
+  - cognee-resources
 tags:
   - guide
   - workflow
@@ -16,8 +17,10 @@ aliases:
   - Using The Wiki
 related:
   - index.md
+  - generate-your-own-wiki.md
   - concepts/llm-wiki.md
   - source-notes/public-corpus-map.md
+  - source-notes/cognee-resources.md
   - log.md
 confidence: high
 ---
@@ -80,6 +83,22 @@ python3 scripts/ingest_public_corpus.py --session karpathy-wiki-v1 --graph
 ```
 
 Use `--graph` when you want compact source summaries promoted into Cognee durable memory. Omit it when you only want local source records and source notes.
+
+## Generate A Fresh Wiki
+
+Use the project generator when you want a reusable experimental wiki with the same engine and a clean seed corpus:
+
+```bash
+python3 scripts/create_wiki_project.py ../my-experimental-wiki --title "My Experimental Wiki" --topic "the domain I want to study"
+```
+
+See [Generate Your Own Wiki](generate-your-own-wiki.md) for the full workflow, including the content-only starter at `examples/experimental-wiki-starter/`.
+
+## Cognee Links
+
+- [Cognee website](https://www.cognee.ai/)
+- [Cognee documentation](https://docs.cognee.ai/)
+- [Cognee GitHub](https://github.com/topoteretes/cognee)
 
 ## Improve The Wiki
 

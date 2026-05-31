@@ -4,6 +4,12 @@ A markdown-first LLM wiki about Andrej Karpathy's public work, with Cognee as th
 
 The readable artifact is the `wiki/` directory. Cognee stores structured entities, claims, summaries, relationships, and feedback records that help the wiki improve over time.
 
+Cognee resources:
+
+- Website: https://www.cognee.ai/
+- Docs: https://docs.cognee.ai/
+- GitHub: https://github.com/topoteretes/cognee
+
 ## Quickstart
 
 ```bash
@@ -42,6 +48,21 @@ uv run scripts/improve.py --feedback examples/feedback/software-2-nanogpt-llmc.j
 
 Add `--cognee` to `query.py` when embedding/provider access is configured and you want Cognee recall folded into the answer evidence. Add `--file-answer --reviewed` to automatically persist the answer as a reviewed source note. Add `--graph` to `ingest.py`, `ingest_public_corpus.py`, or `improve.py` when LLM/network access is configured and you want durable Cognee graph promotion. Without those flags, the scripts still use markdown and filesystem-backed session events.
 
+## Generate Your Own Wiki
+
+Create a fresh standalone experimental wiki project from this repository:
+
+```bash
+python3 scripts/create_wiki_project.py ../my-experimental-wiki --title "My Experimental Wiki" --topic "the domain I want to study"
+cd ../my-experimental-wiki
+npm install
+npm run dev
+```
+
+The generated project includes the Vite website, seed `raw/` and `wiki/` content, the maintenance scripts, Cognee-ready defaults, SEO metadata, and a generic `src/site-config.ts` that you can edit for your own topic.
+
+If you only need the content schema, copy `examples/experimental-wiki-starter/`. It contains a fresh `AGENTS.md`, seed source record, source note, index, usage guide, and log that can be reused without the website engine.
+
 ## Production-Style Local Serve
 
 ```bash
@@ -59,8 +80,15 @@ wiki/              generated and maintained markdown wiki
 skills/            Cognee skill prompts for wiki operations
 scripts/           ingest, query, lint, and improvement workflows
 src/               local browser UI over the markdown wiki
+examples/          reusable starter content and feedback examples
 AGENTS.md          schema and operating rules for maintaining the wiki
 ```
+
+## SEO
+
+The site includes static metadata in `index.html`, runtime per-page titles and descriptions from wiki frontmatter/body text, Open Graph and Twitter summary tags, JSON-LD structured data, semantic article markup, and `public/robots.txt`.
+
+For a reused project, update `src/site-config.ts` before publishing so the title, description, keywords, Cognee links, and optional notice match the new wiki.
 
 ## Core Loop
 

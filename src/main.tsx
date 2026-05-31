@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import cogneeGraphExport from "./cognee-graph.json";
+import { siteConfig } from "./site-config";
 import "./styles.css";
 
 type FrontmatterValue = string | string[];
@@ -665,11 +666,110 @@ function wikiPathForCogneeNode(node: CogneeNode): string | undefined {
   return pages.find((page) => page.title.toLowerCase() === normalized)?.path;
 }
 
+function updateSeoForPage(page: WikiPage) {
+  const isHome = page.path === defaultPath;
+  const title = isHome ? siteConfig.title : `${page.title} | ${siteConfig.shortTitle}`;
+  const description = pageDescription(page);
+  const keywords = [...siteConfig.keywords, ...page.tags, ...page.sources]
+    .filter((value, index, all) => value && all.indexOf(value) === index)
+    .join(", ");
+  const canonicalUrl = `${window.location.origin}${window.location.pathname}`;
+  const pageUrl = `${canonicalUrl}#/${page.path}`;
+
+  document.title = title;
+  setMeta("description", description);
+  setMeta("keywords", keywords);
+  setMeta("author", siteConfig.author);
+  setMeta("robots", "index, follow");
+  setMetaProperty("og:type", "article");
+  setMetaProperty("og:site_name", siteConfig.title);
+  setMetaProperty("og:title", title);
+  setMetaProperty("og:description", description);
+  setMetaProperty("og:url", pageUrl);
+  setMeta("twitter:card", "summary");
+  setMeta("twitter:title", title);
+  setMeta("twitter:description", description);
+  setCanonical(canonicalUrl);
+  setStructuredData(page, title, description, pageUrl);
+}
+
+function pageDescription(page: WikiPage): string {
+  const firstParagraph = page.body
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .find((block) => block && !block.startsWith("#") && !block.startsWith("```"));
+  const description = stripMarkdown(firstParagraph || siteConfig.description);
+  return description.length > 158 ? `${description.slice(0, 155).trim()}...` : description;
+}
+
+function stripMarkdown(value: string): string {
+  return value
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/^-\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function setMeta(name: string, content: string) {
+  setMetaAttribute("name", name, content);
+}
+
+function setMetaProperty(property: string, content: string) {
+  setMetaAttribute("property", property, content);
+}
+
+function setMetaAttribute(attribute: "name" | "property", key: string, content: string) {
+  let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute(attribute, key);
+    document.head.appendChild(element);
+  }
+  element.setAttribute("content", content);
+}
+
+function setCanonical(href: string) {
+  let element = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!element) {
+    element = document.createElement("link");
+    element.setAttribute("rel", "canonical");
+    document.head.appendChild(element);
+  }
+  element.setAttribute("href", href);
+}
+
+function setStructuredData(page: WikiPage, title: string, description: string, pageUrl: string) {
+  let element = document.getElementById("wiki-structured-data") as HTMLScriptElement | null;
+  if (!element) {
+    element = document.createElement("script");
+    element.id = "wiki-structured-data";
+    element.type = "application/ld+json";
+    document.head.appendChild(element);
+  }
+
+  element.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": page.type === "source-note" ? "CreativeWork" : "Article",
+    headline: title,
+    name: page.title,
+    description,
+    url: pageUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteConfig.title,
+      description: siteConfig.description,
+    },
+    keywords: [...page.tags, ...page.sources].join(", "),
+  });
+}
+
 function App() {
   const [currentPath, setCurrentPath] = useState(readHashPath());
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<PageTab>("article");
-  const [showDarioPopup, setShowDarioPopup] = useState(true);
+  const [showNoticePopup, setShowNoticePopup] = useState(true);
 
   useEffect(() => {
     const onHashChange = () => setCurrentPath(readHashPath());
@@ -686,6 +786,10 @@ function App() {
   const hits = useMemo(() => searchPages(query), [query]);
   const groupedPages = useMemo(() => groupByType(pages), []);
 
+  useEffect(() => {
+    if (currentPage) updateSeoForPage(currentPage);
+  }, [currentPage]);
+
   if (!currentPage) {
     return <main className="empty">No wiki pages found.</main>;
   }
@@ -694,25 +798,26 @@ function App() {
 
   return (
     <div className="app-shell">
-      {showDarioPopup ? (
-        <div className="dario-popup" role="dialog" aria-modal="true" aria-labelledby="dario-popup-title">
-          <div className="dario-popup-box">
+      {siteConfig.noticePopup.enabled && showNoticePopup ? (
+        <div className="notice-popup" role="dialog" aria-modal="true" aria-labelledby="notice-popup-title">
+          <div className="notice-popup-box">
             <button
-              className="dario-popup-close"
+              className="notice-popup-close"
               type="button"
               aria-label="Close"
-              onClick={() => setShowDarioPopup(false)}
+              onClick={() => setShowNoticePopup(false)}
             >
               x
             </button>
-            <img src="/dario_img.png" alt="Dario" />
-            <div className="dario-popup-text">
-              <h2 id="dario-popup-title">Notice</h2>
-              <p>
-                Karpathy now works for Dario, but this project was created with Codex.
-                <br />
-                No shade.
-              </p>
+            <img src={siteConfig.noticePopup.imageSrc} alt={siteConfig.noticePopup.imageAlt} />
+            <div className="notice-popup-text">
+              <h2 id="notice-popup-title">{siteConfig.noticePopup.title}</h2>
+              <p>{siteConfig.noticePopup.body.split("\n").map((line, index) => (
+                <React.Fragment key={index}>
+                  {index > 0 ? <br /> : null}
+                  {line}
+                </React.Fragment>
+              ))}</p>
             </div>
           </div>
         </div>
@@ -720,9 +825,9 @@ function App() {
 
       <aside className="sidebar" aria-label="Wiki navigation">
         <a className="brand" href={`#/${defaultPath}`} onClick={() => setQuery("")}>
-          <span className="brand-mark">K</span>
+          <span className="brand-mark">{siteConfig.shortTitle.slice(0, 1)}</span>
           <span>
-            <strong>Karpathy Wiki</strong>
+            <strong>{siteConfig.shortTitle}</strong>
             <small>Cognee memory edition</small>
           </span>
         </a>
@@ -767,13 +872,20 @@ function App() {
             </nav>
           ))
         )}
+
+        <nav className="nav-section external-links" aria-label="Cognee resources">
+          <h2>Cognee</h2>
+          <a href={siteConfig.cogneeLinks.website} target="_blank" rel="noreferrer">Website</a>
+          <a href={siteConfig.cogneeLinks.docs} target="_blank" rel="noreferrer">Docs</a>
+          <a href={siteConfig.cogneeLinks.github} target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
       </aside>
 
       <main className="content">
         <header className="page-header">
           <div>
             <h1>{currentPage.title}</h1>
-            <p className="page-subtitle">From Karpathy Wiki, the Cognee-backed memory encyclopedia</p>
+            <p className="page-subtitle">From {siteConfig.shortTitle}, {siteConfig.subtitle}</p>
           </div>
         </header>
 
@@ -850,7 +962,7 @@ function RetroOfficeDecor({
     <>
       <section className="office-decor" aria-label="Office-style page art">
         <div className="office-titlebar">
-          <span>Karpathy Wiki 2000</span>
+          <span>{siteConfig.shortTitle} 2000</span>
           <span className="office-window-buttons" aria-hidden="true">
             <i />
             <i />
@@ -878,7 +990,7 @@ function RetroOfficeDecor({
             <RetroClip icon="document" label="Sources" delay={0} onClick={() => setActiveTab("sources")} />
             <RetroClip icon="chart" label="Graph" delay={1} onClick={() => setActiveTab("graph")} />
             <RetroClip icon="spark" label="Memory" delay={2} onClick={() => setActiveTab("ask")} />
-            <RetroClip icon="nodes" label="Cognee" delay={3} href="https://github.com/topoteretes/cognee" />
+            <RetroClip icon="nodes" label="Cognee" delay={3} href={siteConfig.cogneeLinks.github} />
           </div>
         </div>
       </section>
@@ -924,7 +1036,7 @@ function retroAssistantLine(page: WikiPage, activeTab: PageTab): string {
   if (activeTab === "related") return "Follow links and backlinks like a 2000s research rabbit hole.";
   if (page.type === "source-note") return "This page is evidence first, synthesis second.";
   if (page.type === "project") return "Project pages connect code, essays, claims, and implementation details.";
-  if (page.type === "concept") return "Concept pages collect recurring ideas across Karpathy's work.";
+  if (page.type === "concept") return `Concept pages collect recurring ideas across ${siteConfig.subjectLabel}.`;
   return "Browse, cite, query, improve, repeat.";
 }
 
@@ -1169,7 +1281,8 @@ function AskCogneePanel({ currentPage }: { currentPage: WikiPage }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           question: trimmed,
-          session: "karpathy-wiki-web",
+          session: `${siteConfig.sessionPrefix}-web`,
+          dataset: siteConfig.dataset,
           cognee: true,
           fileAnswer: true,
           reviewed: true,

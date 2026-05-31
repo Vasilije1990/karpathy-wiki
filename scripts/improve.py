@@ -23,7 +23,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Apply feedback-driven wiki improvements.")
     parser.add_argument("--feedback", required=True, help="Path to feedback JSON")
     parser.add_argument("--apply", action="store_true", help="Apply changes instead of previewing")
-    parser.add_argument("--session", default="karpathy-wiki-improve", help="Cognee session id")
+    parser.add_argument("--session", default=f"{DEFAULT_DATASET}-improve", help="Cognee session id")
     parser.add_argument("--dataset", default=DEFAULT_DATASET, help="Cognee dataset name")
     parser.add_argument("--graph", action="store_true", help="Also store the improvement record in Cognee graph")
     args = parser.parse_args()
@@ -70,7 +70,7 @@ def main() -> None:
     )
 
     memory = {
-        "kind": "karpathy_wiki_improvement",
+        "kind": f"{args.dataset}_improvement",
         "feedback": data,
         "changed_pages": changed,
     }

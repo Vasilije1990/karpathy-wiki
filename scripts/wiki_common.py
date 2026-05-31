@@ -320,7 +320,7 @@ def write_session_event(session_id: str | None, event: dict[str, Any]) -> str:
     caching = os.getenv("CACHING", "true")
 
     try:
-        event_dir = Path(os.environ["CACHE_ROOT_DIRECTORY"]) / "karpathy-wiki-session-events"
+        event_dir = Path(os.environ["CACHE_ROOT_DIRECTORY"]) / f"{DEFAULT_DATASET}-session-events"
         event_dir.mkdir(parents=True, exist_ok=True)
         event_path = event_dir / f"{slugify(session_id)}.jsonl"
         with event_path.open("a", encoding="utf-8") as file:
